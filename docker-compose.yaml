@@ -1,0 +1,64 @@
+version: "3.7"
+services:
+  php:
+    build:
+      args:
+        user: sammy
+        uid: 1000
+      context: ./
+      dockerfile: dockerfile-php
+    container_name: php-laravel
+    working_dir: /var/www/
+    volumes:
+      - ./src:/var/www
+      - ./docker-compose/php/app.ini:/usr/local/etc/php/conf.d/app.ini
+    networks:
+      - laravel-api
+
+  db:
+    image: mysql:5.7
+    container_name: db-laravel
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: password
+      MYSQL_USER: laravel
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - laravel-api
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-laravel
+    ports:
+      - 80:80
+    volumes:
+      - ./src:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d/
+      - ./log:/var/log/nginx
+    networks:
+      - laravel-api
+
+  myadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-laravel
+    ports:
+      - 5000:80
+    depends_on:
+      - db
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: password
+      PMA_USER: root
+      PMA_PASSWORD: root
+    networks:
+      - laravel-api
+
+networks:
+  laravel-api:
+    driver: bridge
