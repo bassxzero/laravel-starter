@@ -8,6 +8,8 @@ services:
       context: ./
       dockerfile: dockerfile-php
     container_name: php-laravel
+    ports:
+      - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
     working_dir: /var/www/
     volumes:
       - ./src:/var/www
@@ -16,6 +18,7 @@ services:
       - laravel-api
 
   db:
+    platform: "linux/amd64"
     image: mysql:5.7
     container_name: db-laravel
     environment:
